@@ -1,0 +1,1247 @@
+@charset "UTF-8";
+
+/* ==========================================
+   CSS 変数（共通で使う色やサイズ）
+   フェスごとにここの色を変えるだけで全体の雰囲気が変わります。
+   ========================================== */
+:root {
+    /* サイト全体で使う基本カラー */
+    --color-food: #E67E22;
+    --bg-color: #ffffff;
+    --grid-border: #e0e0e0;
+    --text-color: #333;
+    --color-playing: #ff0000;
+    
+    /* 各セクションのテーマカラー */
+    --color-fav: #FFD700;
+    --color-weather: #0077B6;
+    --color-memo: #27ae60;
+    
+    /* タイムテーブルのマス目のサイズ設定 */
+    --time-width: 40px;      /* 時間表示列の幅 */
+    --col-width: 120px;      /* 1つのステージの幅 */
+    --px-per-min: 2;         /* 1分あたり何ピクセルにするか（縦の長さ） */
+    --mytt-col-width: 105px; /* マイタイムテーブルのカラム幅 */
+}
+
+/* ==========================================
+   全体のリセットと基本設定
+   ========================================== */
+body {
+    margin: 0; /* 外側の余白を消す */
+    padding: 0; /* 内側の余白を消す */
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; /* 見やすいフォントを設定 */
+    background-color: var(--bg-color); /* 背景色を変数から読み込み */
+    color: var(--text-color); /* 文字色を変数から読み込み */
+    overflow: hidden; /* 画面全体のスクロールを禁止し、アプリ風の動作にする */
+}
+
+/* アプリ全体を囲むコンテナ */
+.app-container {
+    display: flex; /* 中身を並べる設定 */
+    flex-direction: column; /* 縦並びにする */
+    height: 100dvh; /* スマホの画面の高さにぴったり合わせる */
+}
+
+/* ==========================================
+   ヘッダーとタブエリア
+   ========================================== */
+header {
+    background-color: #111; /* 黒っぽい背景 */
+    color: white; /* 白文字 */
+    padding: 10px; /* 内側の余白 */
+    text-align: center; /* 文字を中央揃え */
+    flex-shrink: 0; /* 画面が縮んでもヘッダーは潰れないようにする */
+    z-index: 100; /* 重なり順を上にする（他の要素の下に隠れないように） */
+}
+
+h1 {
+    font-size: 16px; /* タイトルの大きさ */
+    margin: 0 0 10px 0; /* 下にだけ余白を空ける */
+}
+
+.disclaimer {
+    font-size: 12px; /* 注意書きの大きさ */
+    margin-bottom: 10px; /* 下に余白 */
+    color: #ccc; /* 薄いグレー文字 */
+}
+
+.tabs {
+    display: flex; /* タブを横並びにする */
+    justify-content: center; /* 中央に寄せる */
+    gap: 5px; /* タブ同士の隙間 */
+    flex-wrap: wrap; /* 画面に入り切らない場合は折り返す */
+}
+
+.tab-btn {
+    background-color: #333; /* タブの背景色 */
+    color: white; /* タブの文字色 */
+    border: none; /* 枠線を消す */
+    padding: 8px 10px; /* タブの内側の余白 */
+    border-radius: 4px; /* 角を少し丸くする */
+    font-size: 12px; /* 文字サイズ */
+    cursor: pointer; /* マウスを乗せたら指のマークにする */
+    white-space: nowrap; /* タブ内の文字を折り返さない */
+    transition: background-color 0.2s, font-weight 0.2s; /* 色が変わる時にアニメーションさせる */
+}
+
+/* 選択されている（アクティブな）タブの見た目 */
+.tab-btn.active {
+    background-color: #D81B60; /* 目立つピンク色にする */
+    font-weight: bold; /* 太字にする */
+}
+
+/* ==========================================
+   コンテンツエリア（各画面の入れ物）
+   ========================================== */
+.content-section {
+    display: none; /* 基本は隠しておく */
+    flex-grow: 1; /* 余ったスペースをすべて埋める */
+    overflow: hidden; /* はみ出た部分は隠す */
+}
+
+/* アクティブな画面だけ表示する */
+.content-section.active {
+    display: flex; /* 中身を配置できるようにする */
+    flex-direction: column; /* 縦並び */
+}
+
+.scroll-container {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    overflow: auto; /* この中だけスクロールできるようにする */
+}
+
+/* ==========================================
+   タイムテーブル：ステージヘッダー
+   ========================================== */
+.stage-headers-wrapper {
+    display: flex; /* 横並び */
+    position: sticky; /* スクロールしても上にくっつくようにする */
+    top: 0; /* くっつく位置は一番上 */
+    z-index: 20; /* タイムテーブル本体より上に重なるようにする */
+    background: #f9f9f9;
+    border-bottom: 2px solid #333; /* 下線 */
+    box-sizing: border-box; /* 幅の計算を分かりやすくする */
+    width: max-content; /* 中身に合わせて幅を広げる */
+    min-width: 100%; /* 最低でも画面幅は確保する */
+}
+
+/* 左上の空白部分（時間軸の上） */
+.stage-header-empty {
+    width: var(--time-width);
+    flex-shrink: 0;
+    background: #fff;
+    border-right: 1px solid var(--grid-border);
+    position: sticky; /* 横スクロール時も左にくっつく */
+    left: 0;
+    z-index: 21; /* 他のヘッダーよりさらに上に */
+    box-sizing: border-box;
+}
+
+.stage-header-list {
+    display: flex; /* 横並び */
+}
+
+.stage-header {
+    width: var(--col-width);
+    flex-shrink: 0;
+    text-align: center;
+    padding: 10px 5px;
+    border-right: 1px solid var(--grid-border);
+    box-sizing: border-box;
+    background-color: #fff; /* JSから移動：背景を白に */
+    z-index: 20; /* JSから移動：重なり順を指定 */
+}
+
+.stage-header.mytt {
+    width: calc(var(--mytt-col-width) * var(--mytt-cols, 1)); /* 列数に応じて幅を広げる */
+    min-width: var(--mytt-col-width);
+    background: #ddd; /* マイタイムテーブル特有の色 */
+    box-sizing: border-box;
+}
+
+/* ==========================================
+   ステージ名のバッジ
+   ========================================== */
+.stage-name {
+    font-weight: bold;
+    font-size: 12.5px;
+    color: #fff;
+    background-color: var(--stage-color, #333); /* JSから渡された色を使う */
+    padding: 4px;
+    border-radius: 4px; /* 角丸 */
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.5); /* 文字に影をつけて見やすく */
+    display: flex;
+    align-items: center; /* 上下中央揃え */
+    justify-content: center; /* 左右中央揃え */
+    min-height: 3.5em; /* 最低限の高さを確保 */
+    box-sizing: border-box;
+}
+
+.stage-name.mytt {
+    color: #333;
+    text-shadow: none;
+    background: #bbb;
+}
+
+/* ==========================================
+   タイムテーブル：グリッド本体
+   ========================================== */
+.timetable-wrapper {
+    display: flex;
+    position: relative;
+    width: max-content;
+    min-width: 100%;
+}
+
+/* 右端の境界線を引くための工夫 */
+.timetable-wrapper::after {
+    content: '';
+    position: sticky;
+    right: 0;
+    width: 0;
+    height: 100%;
+    background-color: transparent;
+    border-right: 1px solid var(--grid-border);
+    z-index: 11;
+    flex-shrink: 0;
+    pointer-events: none;
+}
+
+/* 時間を表示する左側の列 */
+.time-col {
+    width: var(--time-width);
+    flex-shrink: 0;
+    background: #fff;
+    border-right: 1px solid var(--grid-border);
+    position: sticky; /* 左にくっつく */
+    left: 0;
+    z-index: 10;
+    box-sizing: border-box;
+}
+
+/* 1時間ごとのマス目 */
+.time-slot {
+    height: calc(60 * var(--px-per-min) * 1px); /* 60分×1分あたりの高さ */
+    box-sizing: border-box;
+    border-bottom: 1px solid var(--grid-border); /* 下の線 */
+    text-align: center;
+    font-size: 12px;
+    color: #666;
+    position: relative;
+}
+
+/* 時間のテキスト位置調整 */
+.time-slot span {
+    position: absolute;
+    top: -8px; /* 少し上にずらす */
+    left: 5px;
+    background: #fff;
+    padding: 0 2px;
+}
+
+#gridContainer {
+    display: flex;
+    position: relative;
+}
+
+/* ステージごとの縦列 */
+.grid-col {
+    width: var(--col-width);
+    flex-shrink: 0;
+    border-right: 1px dashed var(--grid-border); /* 点線で区切る */
+    position: relative;
+    box-sizing: border-box;
+}
+
+.grid-col.mytt {
+    background-color: rgba(238, 238, 238, 0.9);
+    width: var(--mytt-col-width);
+}
+
+/* 背景の罫線（1時間ごとの線を描く） */
+.grid-bg-lines {
+    position: absolute;
+    inset: 0;
+    pointer-events: none; /* クリックを邪魔しないようにする */
+    background-size: 100% calc(60 * var(--px-per-min) * 1px);
+    background-image: linear-gradient(to bottom, var(--grid-border) 1px, transparent 1px);
+    z-index: 0;
+}
+
+/* ==========================================
+   アーティストブロック（ライブの時間枠）
+   ========================================== */
+.artist-block {
+    position: absolute; /* 親要素を基準に自由な位置に置く */
+    top: calc(var(--start-min) * var(--px-per-min) * 1px); /* 開始時間に基づいて縦位置を計算 */
+    height: calc(var(--duration) * var(--px-per-min) * 1px); /* 演奏時間に基づいて高さを計算 */
+    left: 2px;
+    right: 2px;
+    border-radius: 4px;
+    padding: 4px;
+    box-sizing: border-box;
+    font-size: 11px;
+    overflow: hidden; /* はみ出た文字は隠す */
+    color: #fff;
+    background-color: var(--artist-bg, #333); /* JSから渡されたステージカラーを使う */
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    border: 2px solid transparent;
+    transition: border-color 0.2s;
+}
+
+/* 背景を明るくするオプション */
+.artist-block.is-light-bg {
+    background-color: color-mix(in srgb, var(--artist-bg) 70%, transparent);
+}
+
+/* お気に入り登録されたときの見た目 */
+.artist-block.favorited {
+    border: 2px solid var(--color-fav); /* 金色の枠線 */
+    box-shadow: 0 0 8px color-mix(in srgb, var(--color-fav) 80%, transparent); /* 光る影 */
+}
+
+.artist-top {
+    display: flex;
+    justify-content: space-between; /* 左右に離す */
+    align-items: flex-start;
+    margin-bottom: 2px;
+    flex-shrink: 0;
+}
+
+.artist-time {
+    font-weight: bold;
+    font-size: 10px;
+}
+
+.artist-name {
+    font-weight: 800;
+    font-size: 13px;
+    line-height: 1.1;
+    margin-bottom: 2px;
+    word-break: normal;
+    overflow-wrap: break-word; /* 長い単語は改行する */
+    display: block;
+}
+
+.artist-meta {
+    font-size: 9px;
+    opacity: 0.9;
+    flex-shrink: 0;
+}
+
+/* お気に入りボタン（★） */
+.fav-btn {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+    text-shadow: 0 0 2px rgba(0,0,0,0.5);
+}
+
+.fav-btn.active {
+    color: var(--color-fav); /* 金色にする */
+    text-shadow: 0 0 3px rgba(0,0,0,0.8);
+}
+
+/* ==========================================
+   現在時刻ライン（赤い線）
+   ========================================== */
+.current-time-line {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 2px;
+    top: calc(var(--current-min) * var(--px-per-min) * 1px); /* 現在時刻に合わせて位置を計算 */
+    background-color: var(--color-playing);
+    z-index: 10;
+    pointer-events: none;
+    display: none; /* 基本は隠す */
+    box-shadow: 0 0 5px var(--color-playing);
+}
+
+/* 左端の丸いポッチ */
+.current-time-line::before {
+    content: '';
+    position: absolute;
+    left: -4px;
+    top: -4px;
+    width: 10px;
+    height: 10px;
+    background-color: var(--color-playing);
+    border-radius: 50%;
+}
+
+.current-time-line.is-visible {
+    display: block; /* 条件を満たせば表示する */
+}
+
+/* ライブ中の枠線アニメーション */
+@keyframes pulse-border {
+    0%, 100% {
+        box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-playing) 70%, transparent);
+        border-color: var(--color-playing);
+    }
+    70% {
+        box-shadow: 0 0 0 6px color-mix(in srgb, var(--color-playing) 0%, transparent);
+        border-color: color-mix(in srgb, var(--color-playing) 70%, white);
+    }
+}
+
+.artist-block.playing {
+    border: 3px solid var(--color-playing);
+    animation: pulse-border 1.5s infinite; /* アニメーションを繰り返す */
+    z-index: 3;
+}
+
+/* ==========================================
+   フードセクション
+   ========================================== */
+#foodSection {
+    overflow-y: auto;
+    padding: 15px;
+    background-color: var(--bg-color);
+}
+
+.food-section-header {
+    font-size: 16px;
+    color: var(--color-food);
+    border-bottom: 2px solid var(--color-food);
+    padding-bottom: 5px;
+    margin-top: 0;
+    margin-bottom: 15px;
+}
+
+/* アコーディオン（開閉）のボタン */
+.food-area-toggle {
+    background-color: #f7f7f7;
+    color: #333;
+    padding: 12px 15px;
+    margin-bottom: 10px;
+    border-radius: 8px;
+    font-weight: bold;
+    font-size: 15px;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    user-select: none;
+    transition: background-color 0.2s;
+    border: 1px solid #e0e0e0;
+}
+
+.food-area-toggle:hover {
+    background-color: #eee;
+}
+
+/* 開いている時はアイコンを回転させる */
+.food-area-toggle.open .toggle-icon {
+    transform: rotate(90deg);
+}
+
+.toggle-icon {
+    transition: transform 0.2s;
+    font-size: 12px;
+    color: #888;
+}
+
+.food-area-content {
+    display: none; /* 基本は隠す */
+    gap: 15px;
+    margin-bottom: 20px;
+    flex-wrap: nowrap;
+    overflow-x: auto; /* 横スクロール可能にする */
+    padding-bottom: 10px;
+}
+
+.food-area-content.open {
+    display: flex; /* 開いた時は表示 */
+}
+
+/* フード店舗のカード */
+.food-card {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transition: box-shadow 0.2s, transform 0.2s;
+    position: relative;
+    min-width: 190px;
+    width: 190px;
+    flex-shrink: 0;
+}
+
+.food-card-area-badge {
+    position: absolute;
+    top: 0;
+    left: 0;
+    background: rgba(230, 126, 34, 0.9);
+    color: #fff;
+    padding: 4px 8px;
+    font-size: 10px;
+    font-weight: bold;
+    border-bottom-right-radius: 8px;
+    z-index: 5;
+    pointer-events: none;
+}
+
+.food-card:hover {
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    transform: translateY(-2px); /* 少し浮き上がる演出 */
+}
+
+.food-fav-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: rgba(0, 0, 0, 0.5);
+    border: 2px solid transparent;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    color: white;
+    font-size: 18px;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+    transition: background 0.2s, color 0.2s;
+    padding: 0;
+}
+
+.food-fav-btn:hover {
+    background: rgba(0, 0, 0, 0.7);
+}
+
+.food-fav-btn.active {
+    color: var(--color-fav);
+    text-shadow: 0 0 5px rgba(255, 215, 0, 0.8);
+}
+
+/* 並べ替え（ドラッグ）のスタイル */
+.draggable-card {
+    cursor: grab;
+}
+
+.draggable-card.dragging {
+    opacity: 0.5;
+    cursor: grabbing;
+    box-shadow: 0 0 10px rgba(0,0,0,0.3);
+}
+
+.food-card-img-wrapper {
+    width: 100%;
+    height: 140px;
+    background-color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #999;
+    font-size: 12px;
+    border-bottom: 1px solid #e0e0e0;
+    overflow: hidden;
+}
+
+.food-card-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* 画像の比率を崩さずに埋める */
+}
+
+.food-card-body {
+    padding: 5px;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+}
+
+.food-card-title {
+    font-size: 15px;
+    font-weight: bold;
+    margin: 0 0 5px 0;
+    color: #333;
+    line-height: 1.3;
+}
+
+.food-card-menus {
+    margin: 0 0 1px 0;
+    padding: 0 0 0 16px;
+    font-size: 11px;
+    color: #555;
+}
+
+.food-card-menus li {
+    margin-bottom: 4px;
+}
+
+.food-card-message {
+    font-size: 10px;
+    color: #666;
+    margin: 0;
+    margin-top: auto; /* 下に押しやる */
+    line-height: 1.5;
+    padding-top: 5px;
+    border-top: 3px dashed #999;
+}
+
+/* ==========================================
+   マップセクション
+   ========================================== */
+#mapSection {
+    background-color: #333;
+    position: relative;
+    overflow: auto;
+}
+
+#mapSection.active {
+    display: block;
+}
+
+.map-wrapper {
+    display: block;
+    width: calc(var(--map-scale, 1) * 100%); /* ズーム倍率を反映 */
+    min-height: 100%;
+    margin: 0 auto;
+    text-align: center;
+    padding: 20px;
+    padding-bottom: 100px;
+    box-sizing: border-box;
+    transition: width 0.2s ease-out; /* ズーム時のアニメーション */
+}
+
+.area-map-img {
+    width: 100%;
+    height: auto;
+    display: block;
+    margin: 0 auto 20px auto;
+    box-shadow: 0 0 20px rgba(0,0,0,0.5);
+}
+
+.map-controls {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    z-index: 110;
+}
+
+.zoom-btn {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: rgba(0,0,0,0.7);
+    color: white;
+    border: 2px solid white;
+    font-size: 20px;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#btnZoomReset {
+    font-size: 12px;
+}
+
+/* 時計と公式リンクのバッジ */
+#digitalClock,
+#officialLink {
+    position: fixed;
+    top: 10px;
+    background: rgba(0, 0, 0, 0.7);
+    color: #FFB100;
+    padding: 5px 5px;
+    border-radius: 5px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 18px;
+    font-weight: bold;
+    z-index: 1000;
+    border: 1px solid #FFB100;
+    box-shadow: 0 0 5px rgba(0, 255, 0, 0.5);
+}
+
+#digitalClock {
+    right: 10px;
+    pointer-events: none; /* クリック不可にする */
+}
+
+#officialLink {
+    left: 10px;
+    padding: 5px 10px;
+    text-decoration: none;
+    display: inline-block;
+}
+
+#lastUpdated {
+    color: #ccc;
+    font-size: 11px;
+    margin-bottom: 10px;
+    display: block;
+}
+
+#officialLink .small-text {
+    font-size: 14px;
+    margin-right: 2px;
+    font-weight: normal;
+}
+
+/* ==========================================
+   天気セクション
+   ========================================== */
+#weatherSection {
+    background-color: var(--bg-color);
+    overflow: hidden;
+    padding: 0;
+}
+
+.weather-content {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    gap: 0;
+}
+
+.weather-section-header {
+    font-size: 16px;
+    color: var(--color-weather);
+    border-bottom: 2px solid var(--color-weather);
+    padding: 15px 15px 5px 15px;
+    margin: 0;
+}
+
+/* 天気サイトを埋め込む枠 */
+.iframe-container {
+    width: 100%;
+    flex-grow: 1;
+    border: none;
+    position: relative;
+    /* 読み込み中の背景画像としてSVGを設定 */
+    background: #f9f9f9 url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text x="50%" y="50%" font-size="14" text-anchor="middle" dominant-baseline="middle" fill="%23999">Now Loading...</text></svg>') no-repeat center center;
+}
+
+.iframe-container iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+    display: block;
+}
+
+.weather-link-notice {
+    font-size: 11px;
+    text-align: center;
+    color: #666;
+    padding: 10px 5px;
+    line-height: 1.4;
+    background-color: #fff;
+    flex-shrink: 0;
+}
+
+.weather-link-notice a {
+    color: var(--color-weather);
+    font-weight: bold;
+}
+
+/* オフライン時の表示切替 */
+#weatherOfflineContent {
+    display: none;
+}
+
+#weatherSection.is-offline #weatherOnlineContent {
+    display: none;
+}
+
+#weatherSection.is-offline #weatherOfflineContent {
+    display: flex;
+}
+
+.weather-offline-msg {
+    flex-grow: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    color: #888;
+    padding: 20px;
+}
+
+/* ==========================================
+   メモセクション
+   ========================================== */
+#memoSection {
+    background-color: var(--bg-color);
+    overflow-y: auto;
+    padding: 15px;
+}
+
+.memo-section-header {
+    font-size: 16px;
+    color: var(--color-memo);
+    border-bottom: 2px solid var(--color-memo);
+    padding-bottom: 5px;
+    margin-top: 0;
+    margin-bottom: 15px;
+}
+
+.memo-notice {
+    font-size: 12px;
+    color: #d35400;
+    background-color: #fdf2e9;
+    padding: 10px;
+    border-radius: 6px;
+    margin-bottom: 15px;
+    border-left: 4px solid #d35400;
+    line-height: 1.4;
+    flex-shrink: 0;
+}
+
+#memoTextArea {
+    flex-grow: 1;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 12px;
+    font-size: 14px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    resize: none; /* テキストエリアのサイズ変更を禁止 */
+    font-family: inherit;
+    min-height: 300px;
+}
+
+#memoTextArea:focus {
+    outline: none;
+    border-color: var(--color-memo);
+    box-shadow: 0 0 5px rgba(39, 174, 96, 0.3);
+}
+
+/* ==========================================
+   検索機能・モーダル
+   ========================================== */
+.search-container {
+    margin: 10px 15px;
+    position: relative;
+    display: flex;
+    justify-content: center;
+}
+
+#artistSearchInput {
+    width: 100%;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 25px;
+    font-size: 14px;
+    outline: none;
+    background-color: #f1f3f4;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+    transition: background-color 0.2s, box-shadow 0.2s;
+    color: #333;
+}
+
+#artistSearchInput:focus {
+    background-color: #ffffff;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.2);
+}
+
+/* サジェスト（検索候補）のリスト */
+.suggest-list {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    margin: 5px auto 0;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    list-style: none; /* リストの黒丸を消す */
+    padding: 0;
+    max-height: 250px;
+    overflow-y: auto;
+    z-index: 200;
+    display: none;
+    text-align: left;
+}
+
+.suggest-list.is-active {
+    display: block;
+}
+
+.suggest-list li {
+    padding: 12px 20px;
+    cursor: pointer;
+    font-size: 14px;
+    border-bottom: 1px solid #f0f0f0;
+    color: #333;
+}
+
+.suggest-list li:last-child {
+    border-bottom: none;
+}
+
+.suggest-list li:hover {
+    background-color: #f8f9fa;
+}
+
+.search-empty-msg {
+    padding: 15px;
+    text-align: center;
+    color: #666;
+}
+
+/* 検索結果ポップアップ（モーダル） */
+.search-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.6);
+    z-index: 1000;
+    display: none;
+}
+
+.search-modal-overlay.is-active {
+    display: block;
+}
+
+.search-modal {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%); /* 画面のド真ん中に配置 */
+    width: 90%;
+    max-width: 400px;
+    background: #fff;
+    border-radius: 16px;
+    z-index: 1001;
+    display: none;
+    flex-direction: column;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+    max-height: 80vh;
+    overflow: hidden;
+}
+
+.search-modal.is-active {
+    display: flex;
+}
+
+.search-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    border-bottom: 1px solid #eee;
+}
+
+.search-modal-header h3 {
+    margin: 0;
+    font-size: 16px;
+    color: #333;
+}
+
+.search-modal-close {
+    background: none;
+    border: none;
+    font-size: 26px;
+    cursor: pointer;
+    color: #999;
+    padding: 0;
+    line-height: 1;
+}
+
+.search-modal-content {
+    padding: 15px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    background: #f9f9f9;
+    border-bottom-left-radius: 16px;
+    border-bottom-right-radius: 16px;
+    flex: 1;
+    max-height: calc(80vh - 60px);
+}
+
+.search-modal-content .artist-block {
+    position: relative;
+    top: auto;
+    left: auto;
+    right: auto;
+    height: auto;
+    min-height: 80px;
+    margin-bottom: 8px;
+    padding: 12px;
+    width: 100%;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    border-radius: 8px;
+}
+
+.search-modal-content .artist-block:last-child {
+    margin-bottom: 0;
+}
+
+.search-modal-content .artist-block:not(:last-child) {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.search-modal-content .artist-stage-name.search-stage-name {
+    display: block;
+    font-size: 16px;
+    background: rgba(0, 0, 0, 0.5);
+    padding: 4px 10px;
+    border-radius: 12px;
+    margin-bottom: 6px;
+    color: #fff;
+    font-weight: bold;
+}
+
+.search-modal-content .artist-time.search-time {
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 4px;
+    color: #fff;
+}
+
+.search-modal-content .artist-name-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.search-modal-content .artist-name-row .artist-name {
+    flex: 1;
+    font-size: 20px;
+    font-weight: bold;
+    white-space: normal;
+    line-height: 1.3;
+    color: #fff;
+}
+
+.search-modal-content .artist-name-row .fav-btn {
+    font-size: 24px;
+    padding: 4px;
+    line-height: 1;
+}
+
+/* 検索結果での時間ステータス（演奏中・開始前など） */
+.search-time-status {
+    background-color: #eef2f5;
+    color: #333;
+    padding: 10px;
+    border-radius: 8px;
+    text-align: center;
+    font-weight: bold;
+    font-size: 14px;
+    margin-bottom: 8px;
+    border: 1px solid #dcdcdc;
+}
+
+/* 時間が迫っている時の色 */
+.is-urgent {
+    color: var(--color-playing);
+}
+
+/* ==========================================
+   GUEST表示＆マイタイムテーブルバッジ
+   ========================================== */
+.guest-info {
+    font-size: 9px;
+    font-weight: normal;
+    display: block;
+    margin-top: 2px;
+    line-height: 1.2;
+}
+
+.guest-item {
+    display: inline-block;
+    margin-right: 4px;
+    white-space: nowrap;
+}
+
+.search-modal-content .guest-info {
+    font-size: 14px;
+    margin-top: 4px;
+    line-height: 1.4;
+}
+
+.mytt-stage-name {
+    font-size: 8px;
+    background: rgba(0, 0, 0, 0.5);
+    padding: 2px 6px;
+    border-radius: 8px;
+    color: #fff;
+    font-weight: bold;
+    display: inline-block;
+    margin-bottom: 2px;
+    white-space: nowrap;
+    align-self: flex-start;
+    flex-shrink: 0;
+    max-width: 100%;
+    box-sizing: border-box;
+    overflow: hidden;
+    text-overflow: ellipsis; /* はみ出たら「…」にする */
+}
+
+.mytt-stage-name.inline-badge {
+    margin-right: 4px;
+}
+
+/* ==========================================
+   その他ユーティリティ
+   ========================================== */
+.source-credit {
+    text-align: left;
+    padding: 10px 0 20px 0;
+    font-size: 11px;
+    color: #666;
+    background-color: #fff;
+}
+
+.source-link {
+    color: #0077B6;
+    text-decoration: none;
+}
+
+.source-link:hover {
+    text-decoration: underline;
+}
+
+.food-area-toggle.food-area-fav {
+    background-color: #fff0f5;
+    border: 2px solid #ffb6c1;
+}
+
+.food-empty-msg {
+    flex: 1;
+    padding: 15px;
+    color: #777;
+    font-size: 13px;
+    text-align: center;
+    border: 2px dashed #e0e0e0;
+    border-radius: 8px;
+}
+
+/* 特殊レイアウト（時間を隠すなど）のブロック */
+.artist-block-special {
+    flex-direction: row;
+    align-items: center;
+    flex-wrap: wrap;
+    align-content: center;
+    gap: 2px;
+    padding: 2px 4px;
+}
+
+.artist-block-special .artist-time,
+.artist-block-special .artist-name {
+    margin: 0;
+    white-space: normal;
+}
+
+.artist-block-special .fav-btn {
+    margin-left: auto;
+}
+
+/* コンパクト表示モード（文字がはみ出そうな時にJSから付与される） */
+.compact-mode {
+    padding: 2px;
+}
+.compact-mode .artist-top {
+    margin-bottom: 0px;
+}
+.compact-mode .mytt-stage-name {
+    margin-bottom: 0px;
+    padding: 1px 4px;
+}
+
+.search-modal-content .artist-official-link {
+    color: inherit;
+    text-decoration: none;
+    display: block;
+    cursor: pointer;
+}
+
+.search-modal-content .artist-official-link:not(.no-link):hover {
+    text-decoration: underline;
+    opacity: 0.8;
+}
+
+.spotify-embed-container {
+    width: 100%;
+    margin-top: 4px;
+    margin-bottom: 16px;
+}
+
+.spotify-embed-iframe {
+    width: 100%;
+    height: 356px;
+    border-radius: 12px;
+    border: none;
+    display: block;
+}
+
+.spotify-empty-msg {
+    font-size: 13px;
+    color: #777;
+    text-align: center;
+    margin-top: 4px;
+    margin-bottom: 16px;
+    font-weight: bold;
+}
+
+.artist-block.is-time-hidden {
+    position: relative;
+    padding: 2px 4px;
+}
+
+.artist-block.is-time-hidden .artist-top {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    margin: 0;
+    height: auto;
+    display: block;
+}
+
+.artist-block.is-time-hidden .artist-name {
+    margin-top: 0;
+    padding-right: 18px;
+}
+
+.artist-block.is-time-hidden .mytt-stage-name {
+    margin-bottom: 2px;
+}
+
+.search-stage-name {
+    width: fit-content;
+}
+
+.guest-item {
+    font-size: 0.80em;
+    display: block;
+}
+
+.is-compact-text .artist-name {
+    font-size: 0.8em;
+    line-height: 1.3;
+}
+
+.is-compact-text .guest-item {
+    display: none;
+}

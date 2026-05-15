@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- ページタイトル（ブラウザのタブに表示） -->
+    <title>hoshioto'26 非公式アプリ</title>
+    
+    <!-- PWA（アプリのようにインストール）のためのマニフェスト -->
+    <link rel="manifest" href="./manifest.json">
+    <!-- アドレスバーの色（Android） -->
+    <meta name="theme-color" content="#111111">
+    
+    <!-- SNSシェア時の表示内容（OGP） -->
+    <meta property="og:title" content="hoshioto'26 非公式アプリ">
+    <meta property="og:description" content="タイムテーブル、エリアマップ等を確認できる非公式アプリです。">
+    <meta property="og:url" content="https://i-love-music-festivals.github.io/hoshioto2026/">
+    <meta property="og:image" content="https://i-love-music-festivals.github.io/hoshioto2026/thumbnail.png">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="フェスタイムテーブル 非公式ガイド">
+    
+    <!-- Twitterカード -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:image" content="https://i-love-music-festivals.github.io/hoshioto2026/thumbnail.png">
+    
+    <!-- ホーム画面アイコン -->
+    <link rel="apple-touch-icon" href="https://i-love-music-festivals.github.io/hoshioto2026/icon.png">
+    <link rel="icon" type="image/png" href="https://i-love-music-festivals.github.io/hoshioto2026/icon.png">
+    
+    <!-- スタイルシートを読み込み -->
+    <link rel="stylesheet" href="./style.css">
+</head>
+    
+<body>
+    <!-- アプリ全体を包むコンテナ -->
+    <div class="app-container">
+        
+        <!-- 時刻表示（JSで更新） -->
+        <div id="digitalClock"></div>
+        
+        <!-- 公式サイトリンク -->
+        <a target="_blank" rel="noopener noreferrer" id="officialLink"></a>
+        
+        <!-- ヘッダー：タイトル、注意書き、検索窓、タブ -->
+        <header>
+            <!-- アプリのメインタイトル -->
+            <h1 id="appTitle">フェス非公式ガイド</h1>
+            <!-- 注意書き（非公式であること等） -->
+            <div id="disclaimerText" class="disclaimer"></div>
+            <!-- 最終更新日時 -->
+            <div id="lastUpdated"></div>
+            
+            <!-- 検索バーとサジェストリスト -->
+            <div class="search-container">
+                <input type="text" id="artistSearchInput" autocomplete="off">
+                <ul id="searchSuggestList" class="suggest-list"></ul>
+            </div>
+
+            <!-- タブボタン群（曜日タブはJSで動的に追加） -->
+            <div class="tabs" id="tabContainer">
+                <button class="tab-btn" id="btnFood"></button>
+                <button class="tab-btn" id="btnMap"></button>
+                <button class="tab-btn" id="btnWeather"></button>
+                <button class="tab-btn" id="btnMemo"></button>
+            </div>
+        </header>
+
+        <!-- タイムテーブルセクション -->
+        <div id="timetableSection" class="content-section">
+            <div class="scroll-container" id="ttScrollArea">
+                <!-- ステージ名ヘッダーエリア -->
+                <div class="stage-headers-wrapper" id="headerWrapper">
+                    <div class="stage-header-empty"></div>
+                    <div class="stage-header-list" id="stageHeaders"></div>
+                </div>
+                
+                <!-- 時間軸とアーティストブロック -->
+                <div class="timetable-wrapper" id="ttWrapper">
+                    <div class="time-col" id="timeCol"></div>
+                    <div id="gridContainer"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- フード情報セクション -->
+        <div id="foodSection" class="content-section">
+            <h2 class="food-section-header" id="foodHeader"></h2>
+            <div id="foodContainer"></div>
+            <div class="source-credit" id="foodSourceCredit"></div>
+        </div>
+
+        <!-- マップセクション -->
+        <div id="mapSection" class="content-section">
+            <div class="map-wrapper" id="mapWrapper"></div>
+            <div class="map-controls">
+                <button class="zoom-btn" id="btnZoomIn"></button>
+                <button class="zoom-btn" id="btnZoomOut"></button>
+                <button class="zoom-btn" id="btnZoomReset"></button>
+            </div>
+            <div class="source-credit" id="mapSourceCredit"></div>
+        </div>
+
+        <!-- 天気セクション -->
+        <div id="weatherSection" class="content-section">
+            <!-- オンライン時 -->
+            <div id="weatherOnlineContent" class="weather-content">
+                <h2 class="weather-section-header" id="weatherTitle"></h2>
+                <div class="iframe-container" id="weatherIframeContainer"></div>
+                <div class="weather-link-notice" id="weatherNotice"></div>
+            </div>
+            <!-- オフライン時 -->
+            <div id="weatherOfflineContent" class="weather-offline-msg"></div>
+        </div>
+
+        <!-- メモセクション -->
+        <div id="memoSection" class="content-section">
+            <h2 class="memo-section-header" id="memoHeader"></h2>
+            <div class="memo-notice" id="memoNotice"></div>
+            <textarea id="memoTextArea"></textarea>
+        </div>
+    </div>
+    
+    <!-- 検索結果モーダルの背景 -->
+    <div id="searchModalOverlay" class="search-modal-overlay"></div>
+    <!-- 検索結果モーダル本体 -->
+    <div id="searchModal" class="search-modal">
+        <div class="search-modal-header">
+            <h3 id="searchModalTitle"></h3>
+            <button id="searchModalClose" class="search-modal-close"></button>
+        </div>
+        <div id="searchModalContent" class="search-modal-content"></div>
+    </div>
+
+    <!-- メインロジックの読み込み -->
+    <script src="./script.js"></script>
+</body>
+</html>

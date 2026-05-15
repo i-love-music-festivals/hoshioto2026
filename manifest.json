@@ -1,0 +1,16 @@
+{
+  "name": "hoshioto'26",
+  "short_name": "hoshioto'26",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#111111",
+  "icons": [
+    {
+      "src": "https://i-love-music-festivals.github.io/hoshioto2026/icon.png",
+      "sizes": "192x192 512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
